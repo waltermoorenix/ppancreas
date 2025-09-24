@@ -144,6 +144,22 @@ window.onload = function() {
       });
     });
 };
+	  // Apaga o historico
+	  document.getElementById("apagarHistorico").addEventListener("click", () => {
+  if (confirm("Tens a certeza que queres apagar todo o histórico?")) {
+    fetch("apagar_historico.php", {
+      method: "POST"
+    })
+    .then(response => response.text())
+    .then(data => {
+      alert(data);
+      document.getElementById("listaHistorico").innerHTML = ""; // Limpa visualmente
+    })
+    .catch(error => {
+      console.error("Erro ao apagar histórico:", error);
+    });
+  }
+});
   </script>
 </body>
 </html>
