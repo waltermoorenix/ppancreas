@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Insulina</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f4f4f4;
+    }
+    h2 {
+      color: #333;
+    }
+    label, input, select {
+      display: block;
+      margin: 10px 0;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #0078D7;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #resultado {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+	#historico {
+     margin-top: 30px;
+     background-color: #fff;
+     padding: 15px;
+     border-radius: 8px;
+     box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+
+    #historico h3 {
+    margin-bottom: 10px;
+    color: #555;
+    }
+
+    #listaHistorico {
+    list-style-type: none;
+    padding-left: 0;
+    }
+
+    #listaHistorico li {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+    }
+
+
+  </style>
+</head>
+<body>
+  <h2>Calculadora de Insulina Rápida</h2>
+
+  <label for="glicose">Nível de glicose (mg/dl):</label>
+  <input type="number" id="glicose" required>
+
+  <label for="refeicao">Planeamento de refeição?</label>
+  <select id="refeicao">
+    <option value="n">Não</option>
+    <option value="s">Sim</option>
+  </select>
+
+  <div id="hidratosDiv" style="display:none;">
+    <label for="hidratos">Gramas de hidratos de carbono:</label>
+    <input type="number" id="hidratos">
+  </div>
+
+  <button onclick="calcularInsulina()">Calcular</button>
+
+  <div id="resultado"></div>
+  
+  <div id="historico">
+  <h3>Histórico de Cálculos</h3>
+  <ul id="listaHistorico"></ul>
+  <button id="apagarHistorico">Apagar Histórico</button>
+</div>
+
+
+
+  <script>
+    const refeicaoSelect = document.getElementById("refeicao");
+    const hidratosDiv = document.getElementById("hidratosDiv");
+
+    refeicaoSelect.addEventListener("change", () => {
+      hidratosDiv.style.display = refeicaoSelect.value === "s" ? "block" : "none";
+    });
+
+  function calcularInsulina() {
+  const glicose = parseFloat(document.getElementById("glicose").value);
+  const refeicao = document.getElementById("refeicao").value;
+  const hidratos = parseFloat(document.getElementById("hidratos").value) || 0;
+
+  let unidades_glicose = glicose > 160 ? (glicose - 160) / 30 : 0;
+  let unidades_hidratos = refeicao === "s" ? hidratos / 15 : 0;
+
+  let unidades_totais = unidades_glicose + unidades_hidratos;
+  let unidades_final = Math.round(unidades_totais);
+
+  const resultadoTexto = `Deves administrar ${unidades_final} unidades de insulina rápida.`;
+  document.getElementById("resultado").innerText = resultadoTexto;
+// Envia os dados para o servidor
+fetch("guardar_calculo.php", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded"
+  },
+  body: `glicose=${glicose}&refeicao=${refeicao}&hidratos=${hidratos}&unidades=${unidades_final}`
+})
+.then(response => response.text())
+.then(data => {
+  console.log("Dados guardados:", data);
+})
+.catch(error => {
+  console.error("Erro ao guardar:", error);
+});
+
+  // Adiciona ao histórico
+  const agora = new Date();
+  const dataHora = agora.toLocaleString("pt-PT");
+
+  const historicoItem = document.createElement("li");
+  historicoItem.textContent = `[${dataHora}] Glicose: ${glicose} mg/dl, Refeição: ${refeicao === "s" ? "Sim" : "Não"}, Hidratos: ${hidratos}g → ${unidades_final} unidades`;
+
+  document.getElementById("listaHistorico").appendChild(historicoItem);
+}
+
+// Carrega o histórico
+window.onload = function() {
+  fetch("listar_historico.php")
+    .then(response => response.json())
+    .then(data => {
+      const lista = document.getElementById("listaHistorico");
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `[${item.data_hora}] Glicose: ${item.glicose} mg/dl, Refeição: ${item.refeicao == 1 ? "Sim" : "Não"}, Hidratos: ${item.hidratos}g → ${item.unidades} unidades`;
+        lista.appendChild(li);
+      });
+    });
+};
+  </script>
+</body>
+</html>
+
