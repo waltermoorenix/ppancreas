@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Insulina</title>
+  <style>
+
+body {
+  background-color: #e6f0ff;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.calculadora {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 30px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.visor {
+  background-color: #0078D7;
+  color: white;
+  font-size: 24px;
+  padding: 15px;
+  text-align: right;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.entrada label {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.botoes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button {
+  background-color: #0078D7;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+#historico {
+  margin-top: 30px;
+}
+
+#listaHistorico {
+  list-style: none;
+  padding-left: 0;
+}
+
+#listaHistorico li {
+  background-color: #f9f9f9;
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+
+</style>
+</head>
+<body>
+  <div class="calculadora">
+  <div class="visor">
+    <div id="resultado">0 unidades</div>
+  </div>
+
+  <div class="entrada">
+    <label>Glicose (mg/dl)</label>
+    <input type="number" id="glicose" placeholder="ex: 180">
+    
+    <label>Planeamento de refeição?</label>
+    <select id="refeicao">
+      <option value="n">Não</option>
+      <option value="s">Sim</option>
+    </select>
+
+    <div id="hidratosDiv">
+      <label>Hidratos (g)</label>
+      <input type="number" id="hidratos" placeholder="ex: 45">
+    </div>
+  </div>
+
+  <div class="botoes">
+    <button onclick="calcularInsulina()">Calcular</button>
+    <button id="apagarHistorico">🗑️ Apagar Histórico</button>
+  </div>
+
+  <div id="historico">
+    <h3>📋 Histórico</h3>
+    <ul id="listaHistorico"></ul>
+  </div>
+
+<div style="margin-top: 20px; text-align: center;">
+  <a href="calcprop.html" target="_blank" style="
+    background-color: #0078D7;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: bold;
+  ">🔗 Abrir Calculadora de Proporções</a>
+</div>
+
+
+
+  <script>
+    const refeicaoSelect = document.getElementById("refeicao");
+    const hidratosDiv = document.getElementById("hidratosDiv");
+
+    refeicaoSelect.addEventListener("change", () => {
+      hidratosDiv.style.display = refeicaoSelect.value === "s" ? "block" : "none";
+    });
+
+  function calcularInsulina() {
+  const glicose = parseFloat(document.getElementById("glicose").value);
+  const refeicao = document.getElementById("refeicao").value;
+  const hidratos = parseFloat(document.getElementById("hidratos").value) || 0;
+
+  let unidades_glicose = glicose > 160 ? (glicose - 160) / 30 : 0;
+  let unidades_hidratos = refeicao === "s" ? hidratos / 15 : 0;
+
+  let unidades_totais = unidades_glicose + unidades_hidratos;
+  let unidades_final = Math.round(unidades_totais);
+
+  const resultadoTexto = `Deves administrar ${unidades_final} unidades de insulina rápida.`;
+  document.getElementById("resultado").innerText = resultadoTexto;
+// Envia os dados para o servidor
+fetch("guardar_calculo.php", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/x-www-form-urlencoded"
+  },
+  body: `glicose=${glicose}&refeicao=${refeicao}&hidratos=${hidratos}&unidades=${unidades_final}`
+})
+.then(response => response.text())
+.then(data => {
+  console.log("Dados guardados:", data);
+})
+.catch(error => {
+  console.error("Erro ao guardar:", error);
+});
+
+  // Adiciona ao histórico
+  const agora = new Date();
+  const dataHora = agora.toLocaleString("pt-PT");
+
+  const historicoItem = document.createElement("li");
+  historicoItem.textContent = `[${dataHora}] Glicose: ${glicose} mg/dl, Refeição: ${refeicao === "s" ? "Sim" : "Não"}, Hidratos: ${hidratos}g → ${unidades_final} unidades`;
+
+  document.getElementById("listaHistorico").appendChild(historicoItem);
+}
+
+// Carrega o histórico
+window.onload = function() {
+  fetch("listar_historico.php")
+    .then(response => response.json())
+    .then(data => {
+      const lista = document.getElementById("listaHistorico");
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `[${item.data_hora}] Glicose: ${item.glicose} mg/dl, Refeição: ${item.refeicao == 1 ? "Sim" : "Não"}, Hidratos: ${item.hidratos}g → ${item.unidades} unidades`;
+        lista.appendChild(li);
+      });
+    });
+};
+	  // Apaga o historico
+	  document.getElementById("apagarHistorico").addEventListener("click", () => {
+  if (confirm("Tens a certeza que queres apagar todo o histórico?")) {
+    fetch("apagar_historico.php", {
+      method: "POST"
+    })
+    .then(response => response.text())
+    .then(data => {
+      alert(data);
+      document.getElementById("listaHistorico").innerHTML = ""; // Limpa visualmente
+    })
+    .catch(error => {
+      console.error("Erro ao apagar histórico:", error);
+    });
+  }
+});
+  </script>
+  </body>
+</html>

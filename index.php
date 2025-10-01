@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 // Dados reais do teu alojamento
 $host = "tb-be04-linweb086.srv.teamblue-ops.net";
 $user = "cybewo_cyberstationpt";          // o teu utilizador MySQL
@@ -9,16 +12,7 @@ $conn = new mysqli($host, $user, $password, $dbname);
 
 if ($conn->connect_error) {
   die("Erro de ligação: " . $conn->connect_error);
+} else {
+  echo "Ligação bem-sucedida!";
 }
-
-$result = $conn->query("SELECT * FROM historico ORDER BY data_hora DESC");
-
-$historico = [];
-while ($row = $result->fetch_assoc()) {
-  $historico[] = $row;
-}
-
-echo json_encode($historico);
-
-$conn->close();
 ?>
