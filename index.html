@@ -125,7 +125,11 @@ button:hover {
     font-weight: bold;
   ">🔗 Abrir Calculadora de Proporções</a>
 </div>
-
+<div id="paginacao" style="margin-top: 20px; text-align: center;">
+  <button onclick="carregarPagina(paginaAtual - 1)">⬅️ Anterior</button>
+  <span id="paginaInfo">Página 1</span>
+  <button onclick="carregarPagina(paginaAtual + 1)">Próxima ➡️</button>
+</div>
 
 
   <script>
@@ -177,16 +181,25 @@ fetch("guardar_calculo.php", {
 
 // Carrega o histórico
 window.onload = function() {
-  fetch("listar_historico.php")
-    .then(response => response.json())
-    .then(data => {
-      const lista = document.getElementById("listaHistorico");
-      data.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `[${item.data_hora}] Glicose: ${item.glicose} mg/dl, Refeição: ${item.refeicao == 1 ? "Sim" : "Não"}, Hidratos: ${item.hidratos}g → ${item.unidades} unidades`;
-        lista.appendChild(li);
+  carregarPagina(1);
+
+  document.getElementById("apagarHistorico").addEventListener("click", () => {
+    if (confirm("Tens a certeza que queres apagar todo o histórico?")) {
+      fetch("apagar_historico.php", {
+        method: "POST"
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert(data);
+        document.getElementById("listaHistorico").innerHTML = "";
+        paginaAtual = 1;
+        carregarPagina(paginaAtual); // Recarrega a primeira página
+      })
+      .catch(error => {
+        console.error("Erro ao apagar histórico:", error);
       });
-    });
+    }
+  });
 };
 	  // Apaga o historico
 	  document.getElementById("apagarHistorico").addEventListener("click", () => {
@@ -204,6 +217,36 @@ window.onload = function() {
     });
   }
 });
+let paginaAtual = 1;
+const limite = 10;
+
+function carregarPagina(pagina) {
+  if (pagina < 1) return;
+
+  fetch(`listar_historico.php?pagina=${pagina}&limite=${limite}`)
+    .then(response => response.json())
+    .then(data => {
+      const lista = document.getElementById("listaHistorico");
+      lista.innerHTML = "";
+
+      if (data.length === 0 && pagina > 1) return;
+
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `[${item.data_hora}] Glicose: ${item.glicose} mg/dl, Refeição: ${item.refeicao == 1 ? "Sim" : "Não"}, Hidratos: ${item.hidratos}g → ${item.unidades} unidades`;
+        lista.appendChild(li);
+      });
+
+      paginaAtual = pagina;
+      document.getElementById("paginaInfo").innerText = `Página ${paginaAtual}`;
+
+      // Desativa botão "Anterior" se estiver na primeira página
+      document.querySelector("#paginacao button:nth-child(1)").disabled = paginaAtual === 1;
+
+      // Desativa botão "Próxima" se menos de 10 resultados
+      document.querySelector("#paginacao button:nth-child(3)").disabled = data.length < limite;
+    });
+}
   </script>
   </body>
 </html>
