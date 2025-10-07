@@ -11,8 +11,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      padding: 20px;
       margin: 0;
     }
 
@@ -23,6 +22,7 @@
       padding: 20px;
       width: 320px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      margin-bottom: 30px;
     }
 
     .display {
@@ -85,6 +85,20 @@
     <button onclick="calcular()">Calcular</button>
   </div>
 
+  <div class="calculator">
+    <div class="display" id="tradicionalDisplay">0</div>
+    <div>
+      <input type="number" id="num1" placeholder="Número 1">
+      <input type="number" id="num2" placeholder="Número 2">
+    </div>
+    <div style="margin-top: 10px;">
+      <button onclick="operar('+')">+</button>
+      <button onclick="operar('-')">−</button>
+      <button onclick="operar('*')">×</button>
+      <button onclick="operar('/')">÷</button>
+    </div>
+  </div>
+
   <script>
     function calcular() {
       const a = parseFloat(document.getElementById('a').value);
@@ -97,6 +111,39 @@
       } else {
         document.getElementById('result').textContent = 'Erro nos valores';
       }
+    }
+
+    function operar(operacao) {
+      const num1 = parseFloat(document.getElementById('num1').value);
+      const num2 = parseFloat(document.getElementById('num2').value);
+      const display = document.getElementById('tradicionalDisplay');
+
+      if (isNaN(num1) || isNaN(num2)) {
+        display.textContent = 'Erro nos valores';
+        return;
+      }
+
+      let resultado;
+      switch (operacao) {
+        case '+':
+          resultado = num1 + num2;
+          break;
+        case '-':
+          resultado = num1 - num2;
+          break;
+        case '*':
+          resultado = num1 * num2;
+          break;
+        case '/':
+          if (num2 === 0) {
+            display.textContent = 'Divisão por zero';
+            return;
+          }
+          resultado = num1 / num2;
+          break;
+      }
+
+      display.textContent = resultado.toFixed(2);
     }
   </script>
 </body>
