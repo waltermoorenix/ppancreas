@@ -1,8 +1,8 @@
 
 <?php
-$host = "tb-be04-linweb086.srv.teamblue-ops.net";
-$user = "cybewo_cyberstationpt";          
-$password = "Vl1991239!";                
+$host = "";
+$user = "";          
+$password = ";                
 $dbname = "cybewo_historico";            
 
 $conn = new mysqli($host, $user, $password, $dbname);
