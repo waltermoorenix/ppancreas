@@ -4,9 +4,9 @@ error_reporting(E_ALL);
 
 // Dados do alojamento
 $host = "";
-$user = "";          utilizador MySQL
-$password = "";                 //password MySQL
-$dbname = "";             //nome exato da base de dados
+$user = "";          
+$password = "";              
+$dbname = "";            
 
 $conn = new mysqli($host, $user, $password, $dbname);
 
