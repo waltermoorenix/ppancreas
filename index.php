@@ -2,11 +2,11 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Dados reais do teu alojamento
+// Dados do alojamento
 $host = "";
-$user = "";          // o teu utilizador MySQL
-$password = "";                 // a tua password MySQL
-$dbname = "cybewo_historico";             // substitui pelo nome exato da base de dados
+$user = "";          utilizador MySQL
+$password = "";                 //password MySQL
+$dbname = "";             //nome exato da base de dados
 
 $conn = new mysqli($host, $user, $password, $dbname);
 
