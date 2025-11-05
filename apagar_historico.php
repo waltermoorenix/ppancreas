@@ -1,9 +1,9 @@
 <?php
-// Dados reais do teu alojamento
+// Dados do alojamento
 $host = "";
-$user = "";          // o teu utilizador MySQL
-$password = "";                 // a tua password MySQL
-$dbname = "cybewo_historico";             // substitui pelo nome exato da base de dados
+$user = "";          
+$password = "";                
+$dbname = "cybewo_historico";             
 
 $conn = new mysqli($host, $user, $password, $dbname);
 
